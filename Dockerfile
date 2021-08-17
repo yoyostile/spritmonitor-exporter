@@ -19,7 +19,7 @@ WORKDIR $GOPATH/src/yoyostile/spritmonitor-exporter/
 COPY . .
 
 RUN go mod init
-RUN go mod verify
+RUN go get -d -v
 RUN GOOS=linux GOARCH=amd64 go build -ldflags="-w -s" -o /go/bin/spritmonitor-exporter
 
 # STEP 2 build a small image
