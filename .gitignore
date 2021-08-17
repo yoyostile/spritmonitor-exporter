@@ -1,2 +1,4 @@
 /.GOPATH
 /bin
+.go.mod
+.go.sum
