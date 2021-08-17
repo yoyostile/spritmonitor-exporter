@@ -28,7 +28,7 @@ FROM scratch
 COPY --from=builder /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
 COPY --from=builder /etc/passwd /etc/passwd
 COPY --from=builder /etc/group /etc/group
-COPY --from=builder /go/bin/hello /go/bin/hello
+COPY --from=builder /go/bin/spritmonitor-exporter /go/bin/spritmonitor-exporter
 USER appuser:appuser
 
 EXPOSE 8086
