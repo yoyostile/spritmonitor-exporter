@@ -2,16 +2,24 @@
 
 # STEP 1 build executable binary
 FROM golang:alpine as builder
-# Install SSL ca certificates
-RUN apk update && apk add git && apk add ca-certificates
-# Create appuser
-RUN adduser -D -g '' appuser
-COPY . $GOPATH/src/mypackage/myapp/
-WORKDIR $GOPATH/src/mypackage/myapp/
-#get dependancies
+RUN apk update && apk add --no-cache git ca-certificates && update-ca-certificates
+ENV USER=appuser
+ENV UID=10001
+
+# See https://stackoverflow.com/a/55757473/12429735RUN
+RUN adduser \
+    --disabled-password \
+    --gecos "" \
+    --home "/nonexistent" \
+    --shell "/sbin/nologin" \
+    --no-create-home \
+    --uid "${UID}" \
+    "${USER}"
+WORKDIR $GOPATH/src/yoyostile/spritmonitor-exporter/
+COPY . .
+
 RUN go mod init
-RUN go get -d -v
-#build the binary
+RUN go mod verify
 RUN GOOS=linux GOARCH=amd64 go build -ldflags="-w -s" -o /go/bin/spritmonitor-exporter
 
 # STEP 2 build a small image
@@ -19,8 +27,9 @@ RUN GOOS=linux GOARCH=amd64 go build -ldflags="-w -s" -o /go/bin/spritmonitor-ex
 FROM scratch
 COPY --from=builder /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
 COPY --from=builder /etc/passwd /etc/passwd
-# Copy our static executable
-COPY --from=builder /go/bin/spritmonitor-exporter /go/bin/spritmonitor-exporter
+COPY --from=builder /etc/group /etc/group
+COPY --from=builder /go/bin/hello /go/bin/hello
+USER appuser:appuser
 
 EXPOSE 8086
 USER appuser
